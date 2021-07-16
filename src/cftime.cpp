@@ -69,12 +69,6 @@
 
 CFTimeMapper::CFTimeMapper() {
     pybind11::initialize_interpreter();
-
-    pybind11::module_ netCDF4 = pybind11::module_::import("netCDF4");
-    pybind11::module_ cftime = pybind11::module_::import("cftime");
-    interpreter_globals = pybind11::module_::import("__main__").attr("__dict__");
-    interpreter_globals["netCDF4"] = netCDF4;
-    interpreter_globals["cftime"] = cftime;
 }
 
 CFTimeMapper::~CFTimeMapper() {
@@ -84,6 +78,12 @@ CFTimeMapper::~CFTimeMapper() {
 std::map<double, std::string> CFTimeMapper::get_time_map(const std::string &filename) {
     using namespace pybind11::literals;
     std::lock_guard<std::mutex> interpreter_lock(interpreter_mutex);
+
+    pybind11::module_ netCDF4 = pybind11::module_::import("netCDF4");
+    pybind11::module_ cftime = pybind11::module_::import("cftime");
+    pybind11::object interpreter_globals = pybind11::module_::import("__main__").attr("__dict__");
+    interpreter_globals["netCDF4"] = netCDF4;
+    interpreter_globals["cftime"] = cftime;
 
     pybind11::dict locals = pybind11::dict("filename"_a=filename);
     pybind11::exec(TIME_MAPPER_SCRIPT_PY, interpreter_globals, locals);

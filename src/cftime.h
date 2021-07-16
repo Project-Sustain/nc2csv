@@ -102,7 +102,6 @@ public:
     CFTimeMapper &operator=(const CFTimeMapper &other) = delete;
 private:
     std::mutex interpreter_mutex;
-    pybind11::object interpreter_globals;
 };
 
 #endif //NC2CSV_CFTIME_H
