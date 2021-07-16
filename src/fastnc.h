@@ -75,6 +75,8 @@ constexpr size_t INVALID_INDEX = -1;
 const std::vector<std::string> CF_BASIC_DIMS{"time", "lat", "lon"};
 const std::vector<std::string> CF_STANDARD_DIMS{"time", "lat", "lon", "crs", "time_bnds", "lat_bnds", "lon_bnds", "crs_bnds"};
 
+static std::mutex nc_mutex;
+
 struct DimValues {
     double time;
     double lat;
@@ -83,29 +85,33 @@ struct DimValues {
 
 class FastNcFile {
 public:
+    struct VariableMetadata {
+        double missing_value;
+        size_t length;
+        std::string standard_name;
+    };
+
     explicit FastNcFile(const std::string &_filename);
+    ~FastNcFile();
 
     double get_dim_value(const std::string &dim, size_t index);
-    double get_missing_value(const std::string &variable);
     double *get_all_data(const std::string &variable);
     DimValues get_dim_values(size_t _1d_index);
-    size_t get_dim_size();
-    netCDF::NcVar get_var(const std::string &variable);
-    std::set<std::string> get_nonstandard_vars();
+
+    const std::map<std::string, VariableMetadata> &get_metadata_view() const;
+    std::set<std::string> get_nonstandard_vars() const;
 
     const std::string filename;
 private:
-    struct CachedDimension {
-        std::pair<double, size_t> last_fetched_value;
-        size_t size;
-        netCDF::NcVar nc_var;
-    };
-
-    void init_dim_cache(const std::string &dim);
     std::list<size_t> _1d_index_to_dim_indices(size_t _1d_index);
+    void cache(const netCDF::NcFile &nc_file, const std::string &variable);
+    static std::set<std::string> get_nonstandard_vars(const netCDF::NcFile &nc_file);
+    static size_t get_data_size(const netCDF::NcVar &nc_var);
+    static double get_missing_value(const netCDF::NcVar &nc_var);
+    static std::string get_standard_name(const netCDF::NcVar &nc_var);
 
-    std::unique_ptr<netCDF::NcFile> p_file;
-    std::map<std::string, CachedDimension> dim_cache;
+    std::map<std::string, double*> data;
+    std::map<std::string, VariableMetadata> metadata;
 };
 
 #endif //NC2CSV_FASTNC_H

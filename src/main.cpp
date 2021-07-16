@@ -66,7 +66,7 @@
 #include "main.h"
 
 int main(int argc, char** argv) {
-    std::ios_base::sync_with_stdio(true);
+    std::ios_base::sync_with_stdio(false);
 
     try {
         Args args = parse_args(argc, argv);
@@ -77,8 +77,15 @@ int main(int argc, char** argv) {
             jobs.emplace_back(filename, p_time_mapper);
         }
 
+        std::vector<std::thread> workers;
+
+        workers.reserve(jobs.size());
         for (const auto &job : jobs) {
-            job.get_function()();
+            workers.emplace_back(job.get_function());
+        }
+
+        for (auto &thread : workers) {
+            thread.join();
         }
     } catch (const netCDF::exceptions::NcException& e) {
         std::cout << e.what() << "\n";

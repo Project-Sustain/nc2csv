@@ -68,6 +68,7 @@
 
 #include <iostream>
 #include <memory>
+#include <thread>
 #include <netcdf>
 #include "fastnc.h"
 #include "conversionjob.h"

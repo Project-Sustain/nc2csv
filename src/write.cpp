@@ -66,16 +66,18 @@
 #include "write.h"
 #include "cftime.h"
 #include <string>
+#include <algorithm>
 
 void write_header(FastNcFile &nc_file, std::ofstream &csv_file) {
     for (const auto &dim : CF_BASIC_DIMS) {
         csv_file << dim << ",";
     }
 
+    auto var_metadata = nc_file.get_metadata_view();
     for (const auto &var : nc_file.get_nonstandard_vars()) {
-        std::string standard_name;
-        nc_file.get_var(var).getAtt("standard_name").getValues(standard_name);
-        csv_file << standard_name << ",";
+        if (std::find(CF_STANDARD_DIMS.begin(), CF_STANDARD_DIMS.end(), var) == CF_STANDARD_DIMS.end()) {
+            csv_file << var_metadata[var].standard_name << ",";
+        }
     }
 
     csv_file << "\n";
@@ -89,13 +91,12 @@ void write_data(FastNcFile &nc_file, std::ofstream &csv_file, CFTimeMapper &time
 
 void write_variable(FastNcFile &nc_file, const std::string &var, std::ofstream &csv_file, CFTimeMapper &time_mapper) {
     double *data = nc_file.get_all_data(var);
-    size_t data_size = nc_file.get_dim_size();
-    double missing_value = nc_file.get_missing_value(var);
+    auto var_metadata = nc_file.get_metadata_view();
 
     std::map<double, std::string> time_map = time_mapper.get_time_map(nc_file.filename);
 
-    for (size_t _1d_i = 0; _1d_i < data_size; _1d_i++) {
-        if (data[_1d_i] == missing_value) {
+    for (size_t _1d_i = 0; _1d_i < var_metadata[var].length; _1d_i++) {
+        if (data[_1d_i] == var_metadata[var].missing_value) {
             continue;
         }
 
