@@ -66,11 +66,11 @@
 #include "main.h"
 
 int main(int argc, char** argv) {
-    std::ios_base::sync_with_stdio(false);
+    std::ios_base::sync_with_stdio(true);
 
     try {
         Args args = parse_args(argc, argv);
-        std::shared_ptr<CFTimeMapper> p_time_mapper = std::make_shared<CFTimeMapper>();
+        std::shared_ptr<CFTimeMapper> p_time_mapper{new CFTimeMapper()};
 
         std::vector<ConversionJob> jobs;
         for (const auto &filename : args.files) {
