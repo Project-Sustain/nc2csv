@@ -1,10 +1,8 @@
-FROM alpine:edge
+FROM ubuntu:latest
 
 COPY . /nc2csv
 
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-RUN apk update
-RUN apk add bash git cmake make g++ python3-dev py3-pip py3-pybind11-dev netcdf-dev netcdf-cxx4-dev hdf5-dev
+RUN apt update && apt install -y cmake build-essential pybind11-dev python3 python3-pip python3-dev libnetcdf-c++4-dev
 RUN pip install netCDF4
 RUN cd /nc2csv && cmake . && make
 

@@ -80,9 +80,9 @@ std::map<double, std::string> CFTimeMapper::get_time_map(const std::string &file
     using namespace pybind11::literals;
     std::lock_guard<std::mutex> nc_lock(common_mutex);
 
-    pybind11::module_ netCDF4 = pybind11::module_::import("netCDF4");
-    pybind11::module_ cftime = pybind11::module_::import("cftime");
-    pybind11::object interpreter_globals = pybind11::module_::import("__main__").attr("__dict__");
+    pybind11::module netCDF4 = pybind11::module::import("netCDF4");
+    pybind11::module cftime = pybind11::module::import("cftime");
+    pybind11::object interpreter_globals = pybind11::module::import("__main__").attr("__dict__");
     interpreter_globals["netCDF4"] = netCDF4;
     interpreter_globals["cftime"] = cftime;
 
