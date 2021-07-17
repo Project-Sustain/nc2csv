@@ -68,10 +68,9 @@
 #include <utility>
 #include "write.h"
 
-ConversionJob::ConversionJob(const std::string &nc_filename, std::shared_ptr<CFTimeMapper> _p_time_mapper) :
-    p_time_mapper(std::move(_p_time_mapper)) {
+ConversionJob::ConversionJob(std::string _nc_filename, std::shared_ptr<CFTimeMapper> _p_time_mapper) :
+    p_time_mapper(std::move(_p_time_mapper)), nc_filename(std::move(_nc_filename)) {
 
-    p_nc_file = std::make_shared<FastNcFile>(nc_filename);
     p_csv_file = std::make_shared<std::ofstream>(nc_path_to_csv_path(nc_filename));
 }
 
@@ -85,8 +84,10 @@ std::string ConversionJob::nc_path_to_csv_path(const std::string &nc_pathname) {
 
 std::function<void()> ConversionJob::get_function() const {
     return [this] {
-        write_header(*p_nc_file, *p_csv_file);
-        write_data(*p_nc_file, *p_csv_file, *p_time_mapper);
+        FastNcFile nc_file(nc_filename);
+        write_header(nc_file, *p_csv_file);
+        write_data(nc_file, *p_csv_file, *p_time_mapper);
+        std::cout << nc_filename << std::endl;
     };
 }
 

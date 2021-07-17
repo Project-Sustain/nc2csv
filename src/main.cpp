@@ -64,6 +64,7 @@
 // END OF TERMS AND CONDITIONS
 
 #include "main.h"
+#include "jobpool.h"
 
 int main(int argc, char** argv) {
     std::ios_base::sync_with_stdio(false);
@@ -77,18 +78,11 @@ int main(int argc, char** argv) {
             jobs.emplace_back(filename, p_time_mapper);
         }
 
-        std::vector<std::thread> workers;
+        JobPool pool(7);
 
-        workers.reserve(jobs.size());
-        for (const auto &job : jobs) {
-            workers.emplace_back(job.get_function());
-        }
-
-        for (auto &thread : workers) {
-            thread.join();
-        }
-    } catch (const netCDF::exceptions::NcException& e) {
-        std::cout << e.what() << "\n";
+        pool.run(jobs);
+    } catch (const netCDF::exceptions::NcException &e) {
+        std::cout << e.what() << std::endl;
         return 1;
     }
 }

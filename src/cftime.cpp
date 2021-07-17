@@ -64,6 +64,7 @@
 // END OF TERMS AND CONDITIONS
 
 #include "cftime.h"
+#include "commonmutex.h"
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 
@@ -77,7 +78,7 @@ CFTimeMapper::~CFTimeMapper() {
 
 std::map<double, std::string> CFTimeMapper::get_time_map(const std::string &filename) {
     using namespace pybind11::literals;
-    std::lock_guard<std::mutex> interpreter_lock(interpreter_mutex);
+    std::lock_guard<std::mutex> nc_lock(common_mutex);
 
     pybind11::module_ netCDF4 = pybind11::module_::import("netCDF4");
     pybind11::module_ cftime = pybind11::module_::import("cftime");

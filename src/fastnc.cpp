@@ -64,11 +64,15 @@
 // END OF TERMS AND CONDITIONS
 
 #include <algorithm>
+#include <utility>
 #include "fastnc.h"
+#include "commonmutex.h"
 
-FastNcFile::FastNcFile(const std::string &_filename) : filename(_filename) {
-    std::lock_guard<std::mutex> nc_lock(nc_mutex);
-    netCDF::NcFile nc_file(_filename, netCDF::NcFile::read);
+std::mutex common_mutex;
+
+FastNcFile::FastNcFile(std::string _filename) : filename(std::move(_filename)) {
+    std::lock_guard<std::mutex> nc_lock(common_mutex);
+    netCDF::NcFile nc_file(filename, netCDF::NcFile::read);
 
     for (const auto &dim : CF_BASIC_DIMS) {
         cache(nc_file, dim);

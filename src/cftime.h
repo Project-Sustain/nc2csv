@@ -96,7 +96,7 @@ public:
     CFTimeMapper();
     ~CFTimeMapper();
 
-    std::map<double, std::string> get_time_map(const std::string &filename);
+    static std::map<double, std::string> get_time_map(const std::string &filename);
 
     CFTimeMapper(const CFTimeMapper &other) = delete;
     CFTimeMapper &operator=(const CFTimeMapper &other) = delete;

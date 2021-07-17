@@ -71,5 +71,5 @@ Args parse_args(int argc, char **argv) {
         files.emplace_back(argv[i]);
     }
 
-    return Args { files };
+    return Args { files, 3 };
 }

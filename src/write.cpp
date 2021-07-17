@@ -104,6 +104,4 @@ void write_variable(FastNcFile &nc_file, const std::string &var, std::ofstream &
 
         csv_file << time_map[vals.time] << "," << vals.lat << "," << vals.lon << "," << data[_1d_i] << "\n";
     }
-
-    delete[] data;
 }
