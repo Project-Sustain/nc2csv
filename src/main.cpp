@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
             jobs.emplace_back(filename, p_time_mapper);
         }
 
-        JobPool pool(7);
+        JobPool pool(args.concurrency);
 
         pool.run(jobs);
     } catch (const netCDF::exceptions::NcException &e) {

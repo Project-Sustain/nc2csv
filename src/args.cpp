@@ -64,15 +64,16 @@
 // END OF TERMS AND CONDITIONS
 
 #include <iostream>
+#include <algorithm>
 #include "args.h"
 
 void usage() {
-    std::cout << R"("
+    std::cout << R"(
 nc2csv - convert netCDF to CSV
 
 USAGE
     nc2csv [-c concurrency] [-t time_dimension] [-a lat_dimension]
-           [-g lng_dimension] [-u dimensions] files...
+           [-g lng_dimension] files...
 
 OPTIONS
     -c : amount of threads to spawn for processing
@@ -87,22 +88,70 @@ OPTIONS
          (default "lat")
     -g : the name of the dimension that provides longitude units
          (default "lon")
-    -u : a comma-separated list of dimensions to output
-         (by default looks for all dimensions that are not a standard CF
-          dimension or a dimension provided by -t, -a, or -g)
-")";
+)";
 }
 
 Args parse_args(int argc, char **argv) {
-    if (argc == 1) {
+    return parse_args(make_arg_vector(argc, argv));
+}
+
+Args parse_args(std::vector<std::string> args) {
+    if (args.empty()) {
         usage();
-        return Args { {}, 0, true };
+        return get_failed_args();
     }
 
-    std::vector<std::string> files;
+    Args final_args{};
+    parse_opts(final_args, args);
+    parse_files(final_args, args);
+
+    if (final_args.files.empty()) {
+        usage();
+        return get_failed_args();
+    }
+
+    return final_args;
+}
+
+std::vector<std::string> make_arg_vector(int argc, char** argv) {
+    std::vector<std::string> args;
     for (int i = 1; i < argc; i++) {
-        files.emplace_back(argv[i]);
+        args.emplace_back(argv[i]);
+    }
+    return args;
+}
+
+void parse_opts(Args &a, std::vector<std::string> &args) {
+    size_t i = 0;
+    for (; i < args.size(); i += 2) {
+        std::string flag = args[i];
+
+        if (flag.find('-') != 0) {
+            break;
+        } else if (flag == "-c") {
+            a.concurrency = std::stoi(args[i + 1]);
+        } else if (flag == "-t") {
+            a.time_property = args[i + 1];
+        } else if (flag == "-a") {
+            a.lat_property = args[i + 1];
+        } else if (flag == "-g") {
+            a.lon_property = args[i + 1];
+        }
     }
 
-    return Args { files, 3, false };
+    while (i-- > 0) {
+        args.erase(args.begin());
+    }
+}
+
+void parse_files(Args &a, std::vector<std::string> &args) {
+    for (const auto &file : args) {
+        a.files.push_back(file);
+    }
+}
+
+Args get_failed_args() {
+    Args empty_args{};
+    empty_args.abort = true;
+    return empty_args;
 }

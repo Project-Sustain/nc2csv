@@ -70,11 +70,19 @@
 #include <string>
 
 struct Args {
-    std::vector<std::string> files;
-    size_t pool_size;
-    bool abort;
+    std::vector<std::string> files{};
+    size_t concurrency{3};
+    std::string time_property{"time"};
+    std::string lat_property{"lat"};
+    std::string lon_property{"lon"};
+    bool abort{false};
 };
 
 Args parse_args(int argc, char** argv);
+Args parse_args(std::vector<std::string> args);
+std::vector<std::string> make_arg_vector(int argc, char** argv);
+void parse_opts(Args &a, std::vector<std::string> &args);
+void parse_files(Args &a, std::vector<std::string> &args);
+Args get_failed_args();
 
 #endif //NC2CSV_ARGS_H
