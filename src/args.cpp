@@ -63,13 +63,46 @@
 //
 // END OF TERMS AND CONDITIONS
 
+#include <iostream>
 #include "args.h"
 
+void usage() {
+    std::cout << R"("
+nc2csv - convert netCDF to CSV
+
+USAGE
+    nc2csv [-c concurrency] [-t time_dimension] [-a lat_dimension]
+           [-g lng_dimension] [-u dimensions] files...
+
+OPTIONS
+    -c : amount of threads to spawn for processing
+         CAREFUL: each thread will process one file, and the ENTIRE uncompressed
+         netCDF file must fit into this thread's memory. Setting this value
+         too high WILL cause your system to run out of memory, though it
+         results in massive performance increases if you have the memory.
+         (default 3)
+    -t : the name of the dimension that provides time units
+         (default "time")
+    -a : the name of the dimension that provides latitude units
+         (default "lat")
+    -g : the name of the dimension that provides longitude units
+         (default "lon")
+    -u : a comma-separated list of dimensions to output
+         (by default looks for all dimensions that are not a standard CF
+          dimension or a dimension provided by -t, -a, or -g)
+")";
+}
+
 Args parse_args(int argc, char **argv) {
+    if (argc == 1) {
+        usage();
+        return Args { {}, 0, true };
+    }
+
     std::vector<std::string> files;
     for (int i = 1; i < argc; i++) {
         files.emplace_back(argv[i]);
     }
 
-    return Args { files, 3 };
+    return Args { files, 3, false };
 }

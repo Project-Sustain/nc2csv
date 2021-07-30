@@ -67,21 +67,37 @@
 #include <utility>
 #include "fastnc.h"
 #include "commonmutex.h"
+#include "cfdims.h"
 
 std::mutex common_mutex;
 
-FastNcFile::FastNcFile(std::string _filename) : filename(std::move(_filename)) {
+FastNcFile::FastNcFile(std::string _filename, std::vector<std::string> _basic_dims, std::set<std::string> _wanted_variables)
+    : filename(std::move(_filename)), basic_dims(std::move(_basic_dims)) {
     std::lock_guard<std::mutex> nc_lock(common_mutex);
     netCDF::NcFile nc_file(filename, netCDF::NcFile::read);
 
-    for (const auto &dim : CF_BASIC_DIMS) {
+    for (const std::string& dim : basic_dims) {
         cache(nc_file, dim);
     }
 
-    for (const auto &var : get_nonstandard_vars(nc_file)) {
+    if (_wanted_variables.empty()) {
+        _wanted_variables = get_nonstandard_vars(nc_file);
+    }
+
+    for (const auto &var : _wanted_variables) {
         cache(nc_file, var);
     }
+
+    verify_consistent_var_sizes();
+
+    wanted_variables = std::move(_wanted_variables);
 }
+
+FastNcFile::FastNcFile(std::string _filename, const std::set<std::string> &_wanted_variables)
+    : FastNcFile(std::move(_filename), CF_DEFAULT_BASIC_DIMS, _wanted_variables) { }
+
+FastNcFile::FastNcFile(std::string _filename)
+    : FastNcFile(std::move(_filename), {}) { }
 
 FastNcFile::~FastNcFile() {
     for (auto &pair : data) {
@@ -165,16 +181,17 @@ DimValues FastNcFile::get_dim_values(size_t _1d_index) {
     std::list<size_t> indices = _1d_index_to_dim_indices(_1d_index);
     auto it = indices.begin();
 
-    values.time = get_dim_value("time", *it++);
-    values.lat = get_dim_value("lat", *it++);
-    values.lon = get_dim_value("lon", *it++);
+    values.lon = get_dim_value(basic_dims[2], *it++);
+    values.lat = get_dim_value(basic_dims[1], *it++);
+    values.time = get_dim_value(basic_dims[0], *it++);
 
     return values;
 }
 
 std::list<size_t> FastNcFile::_1d_index_to_dim_indices(size_t _1d_index) {
     std::list<size_t> indices;
-    for (const auto& dim : CF_BASIC_DIMS) {
+    for (auto it = basic_dims.rbegin(); it != basic_dims.rend(); it++) {
+        auto dim = *it;
         size_t dim_size = metadata[dim].length;
         indices.push_back(_1d_index % dim_size);
         _1d_index /= dim_size;
@@ -183,7 +200,27 @@ std::list<size_t> FastNcFile::_1d_index_to_dim_indices(size_t _1d_index) {
     return indices;
 }
 
-const std::map<std::string, FastNcFile::VariableMetadata> &FastNcFile::get_metadata_view() const {
+const std::map<std::string, VariableMetadata> &FastNcFile::get_metadata_view() const {
     return metadata;
 }
+
+void FastNcFile::verify_consistent_var_sizes() {
+    std::vector<std::pair<std::string, VariableMetadata>> no_basic_metadata(metadata.size());
+    auto basic_dim_filter = [this](const decltype(metadata)::value_type &pair) {
+        return std::find(basic_dims.begin(), basic_dims.end(), pair.first) == basic_dims.end();
+    };
+
+    auto copy_stop = std::copy_if(metadata.begin(), metadata.end(), no_basic_metadata.begin(), basic_dim_filter);
+    no_basic_metadata.resize(std::distance(no_basic_metadata.begin(), copy_stop));
+
+    size_t current = no_basic_metadata.begin()->second.length;
+    for (const auto &pair : no_basic_metadata) {
+        if (current != pair.second.length) {
+            throw std::runtime_error("Sizes of variables in file are inconsistent: please specify variable list");
+        }
+        current = pair.second.length;
+    }
+}
+
+
 

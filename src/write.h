@@ -68,11 +68,12 @@
 
 #include <netcdf>
 #include <fstream>
+#include <functional>
 #include "fastnc.h"
 #include "cftime.h"
 
-void write_header(FastNcFile &nc_file, std::ofstream &csv_file);
-void write_data(FastNcFile &nc_file, std::ofstream &csv_file, CFTimeMapper &time_mapper);
-void write_variable(FastNcFile &nc_file, const std::string &var, std::ofstream &csv_file, CFTimeMapper &time_mapper);
+void write_header(FastNcFile &nc_file, std::ostream &csv_file);
+void write_data(FastNcFile &nc_file, std::ostream &csv_file, std::function<std::string(double)> &time_mapper);
+void write_variable(FastNcFile &nc_file, const std::string &var, std::ostream &csv_file, std::function<std::string(double)> &time_mapper);
 
 #endif //NC2CSV_WRITE_H

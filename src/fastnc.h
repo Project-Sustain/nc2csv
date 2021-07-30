@@ -70,25 +70,14 @@
 #include <list>
 #include <mutex>
 #include <memory>
+#include "cfdims.h"
 
 constexpr size_t INVALID_INDEX = -1;
-const std::vector<std::string> CF_BASIC_DIMS{"time", "lat", "lon"};
-const std::vector<std::string> CF_STANDARD_DIMS{"time", "lat", "lon", "crs", "time_bnds", "lat_bnds", "lon_bnds", "crs_bnds"};
-
-struct DimValues {
-    double time;
-    double lat;
-    double lon;
-};
 
 class FastNcFile {
 public:
-    struct VariableMetadata {
-        double missing_value;
-        size_t length;
-        std::string standard_name;
-    };
-
+    explicit FastNcFile(std::string _filename, std::vector<std::string> _basic_dims, std::set<std::string> _wanted_variables);
+    explicit FastNcFile(std::string _filename, const std::set<std::string> &_wanted_variables);
     explicit FastNcFile(std::string _filename);
     ~FastNcFile();
 
@@ -103,6 +92,8 @@ public:
     std::set<std::string> get_nonstandard_vars() const;
 
     const std::string filename;
+    const std::vector<std::string> basic_dims;
+    std::set<std::string> wanted_variables;
 private:
     static std::set<std::string> get_nonstandard_vars(const netCDF::NcFile &nc_file);
     static size_t get_data_size(const netCDF::NcVar &nc_var);
@@ -111,6 +102,7 @@ private:
 
     std::list<size_t> _1d_index_to_dim_indices(size_t _1d_index);
     void cache(const netCDF::NcFile &nc_file, const std::string &variable);
+    void verify_consistent_var_sizes();
 
     std::map<std::string, double*> data;
     std::map<std::string, VariableMetadata> metadata;

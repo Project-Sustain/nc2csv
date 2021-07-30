@@ -18,7 +18,7 @@ find_package(pybind11 REQUIRED)
 find_package(Threads REQUIRED)
 
 set(NC2CSV_SOURCES
-        src/main.cpp)
+        src/main.cpp src/cfdims.h)
 
 set(COMMON_SOURCES
         src/write.cpp
@@ -28,7 +28,7 @@ set(COMMON_SOURCES
         src/conversionjob.cpp src/jobpool.cpp src/jobpool.h src/commonmutex.h)
 
 set(TESTS
-        test/main.cpp src/conversionjob.cpp src/conversionjob.h)
+        test/main.cpp src/conversionjob.cpp src/conversionjob.h test/fastnctest.cpp)
 
 set(HEADERS)
 
@@ -44,3 +44,4 @@ target_link_libraries(nc2csv Threads::Threads)
 target_link_libraries(tests pybind11::embed)
 target_link_libraries(tests netcdf_c++4)
 target_link_libraries(tests netcdf)
+target_link_libraries(tests Threads::Threads)

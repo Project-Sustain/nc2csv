@@ -67,33 +67,33 @@
 #include "cftime.h"
 #include <string>
 #include <algorithm>
+#include <iomanip>
 
-void write_header(FastNcFile &nc_file, std::ofstream &csv_file) {
-    for (const auto &dim : CF_BASIC_DIMS) {
+void write_header(FastNcFile &nc_file, std::ostream &csv_file) {
+    for (const auto &dim : nc_file.basic_dims) {
         csv_file << dim << ",";
     }
 
     auto var_metadata = nc_file.get_metadata_view();
-    for (const auto &var : nc_file.get_nonstandard_vars()) {
-        if (std::find(CF_STANDARD_DIMS.begin(), CF_STANDARD_DIMS.end(), var) == CF_STANDARD_DIMS.end()) {
-            csv_file << var_metadata[var].standard_name << ",";
-        }
+    for (const auto &var : nc_file.wanted_variables) {
+        std::string name = var_metadata[var].standard_name;
+        csv_file << name << ",";
     }
 
     csv_file << "\n";
 }
 
-void write_data(FastNcFile &nc_file, std::ofstream &csv_file, CFTimeMapper &time_mapper) {
-    for (const auto &var : nc_file.get_nonstandard_vars()) {
+void write_data(FastNcFile &nc_file, std::ostream &csv_file, std::function<std::string(double)> &time_mapper) {
+    for (const auto &var : nc_file.wanted_variables) {
         write_variable(nc_file, var, csv_file, time_mapper);
     }
 }
 
-void write_variable(FastNcFile &nc_file, const std::string &var, std::ofstream &csv_file, CFTimeMapper &time_mapper) {
+void write_variable(FastNcFile &nc_file, const std::string &var, std::ostream &csv_file, std::function<std::string(double)> &time_mapper) {
+    csv_file << std::setprecision(4) << std::fixed;
+
     double *data = nc_file.get_all_data(var);
     auto var_metadata = nc_file.get_metadata_view();
-
-    std::map<double, std::string> time_map = time_mapper.get_time_map(nc_file.filename);
 
     for (size_t _1d_i = 0; _1d_i < var_metadata[var].length; _1d_i++) {
         if (data[_1d_i] == var_metadata[var].missing_value) {
@@ -102,6 +102,6 @@ void write_variable(FastNcFile &nc_file, const std::string &var, std::ofstream &
 
         DimValues vals = nc_file.get_dim_values(_1d_i);
 
-        csv_file << time_map[vals.time] << "," << vals.lat << "," << vals.lon << "," << data[_1d_i] << "\n";
+        csv_file << time_mapper(vals.time) << "," << vals.lat << "," << vals.lon << "," << data[_1d_i] << "\n";
     }
 }

@@ -71,6 +71,11 @@ int main(int argc, char** argv) {
 
     try {
         Args args = parse_args(argc, argv);
+
+        if (args.abort) {
+            return 0;
+        }
+
         std::shared_ptr<CFTimeMapper> p_time_mapper{new CFTimeMapper()};
 
         std::vector<ConversionJob> jobs;

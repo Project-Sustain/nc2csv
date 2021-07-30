@@ -72,6 +72,7 @@
 struct Args {
     std::vector<std::string> files;
     size_t pool_size;
+    bool abort;
 };
 
 Args parse_args(int argc, char** argv);
