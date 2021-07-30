@@ -28,7 +28,7 @@ set(COMMON_SOURCES
         src/conversionjob.cpp src/jobpool.cpp src/jobpool.h src/commonmutex.h)
 
 set(TESTS
-        test/main.cpp src/conversionjob.cpp src/conversionjob.h test/fastnctest.cpp test/argstest.cpp)
+        test/main.cpp test/fastnctest.cpp test/argstest.cpp)
 
 set(HEADERS)
 
