@@ -77,7 +77,7 @@ import cftime
 
 def make_time_map(filename):
     nc_file = netCDF4.Dataset(filename)
-    time = nc_file["time"]
+    time = nc_file["day"]
 
     transformed_times = cftime.num2date(time[:].filled(), time.units, time.calendar)
     iso_times = list(map(lambda t: t.isoformat(), transformed_times))

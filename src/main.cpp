@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 
         std::vector<ConversionJob> jobs;
         for (const auto &filename : args.files) {
-            jobs.emplace_back(filename, p_time_mapper);
+            jobs.emplace_back(filename, p_time_mapper, args);
         }
 
         JobPool pool(args.concurrency);

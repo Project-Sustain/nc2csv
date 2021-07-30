@@ -72,10 +72,11 @@
 #include <functional>
 #include "fastnc.h"
 #include "cftime.h"
+#include "args.h"
 
 class ConversionJob {
 public:
-    explicit ConversionJob(std::string nc_filename, std::shared_ptr<CFTimeMapper> mapper);
+    explicit ConversionJob(std::string nc_filename, std::shared_ptr<CFTimeMapper> mapper, Args _args);
 
     std::function<void()> get_function() const;
     explicit operator std::function<void()>() const;
@@ -85,6 +86,7 @@ private:
     std::string nc_filename;
 
     static std::string nc_path_to_csv_path(const std::string &nc_pathname) ;
+    Args args;
 };
 
 #endif //NC2CSV_CONVERSIONJOB_H
