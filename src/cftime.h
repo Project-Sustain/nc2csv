@@ -91,17 +91,17 @@ def make_time_map(filename):
 time_map = make_time_map(filename);
 )";
 
-class CFTimeMapper {
+using TimeMap = std::map<double, std::string>;
+
+class TimeMapLock {
 public:
-    CFTimeMapper();
-    ~CFTimeMapper();
+    TimeMapLock();
+    ~TimeMapLock();
 
-    static std::map<double, std::string> get_time_map(const std::string &filename);
-
-    CFTimeMapper(const CFTimeMapper &other) = delete;
-    CFTimeMapper &operator=(const CFTimeMapper &other) = delete;
-private:
-    std::mutex interpreter_mutex;
+    TimeMapLock(const TimeMapLock &other) = delete;
+    TimeMapLock &operator=(const TimeMapLock &other) = delete;
 };
+
+TimeMap get_time_map(const std::string &filename);
 
 #endif //NC2CSV_CFTIME_H

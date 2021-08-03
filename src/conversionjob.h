@@ -76,17 +76,16 @@
 
 class ConversionJob {
 public:
-    explicit ConversionJob(std::string nc_filename, std::shared_ptr<CFTimeMapper> mapper, Args _args);
+    explicit ConversionJob(std::string nc_filename, Args _args);
 
     std::function<void()> get_function() const;
     explicit operator std::function<void()>() const;
 private:
     std::shared_ptr<std::ofstream> p_csv_file;
-    std::shared_ptr<CFTimeMapper> p_time_mapper;
     std::string nc_filename;
+    Args args;
 
     static std::string nc_path_to_csv_path(const std::string &nc_pathname) ;
-    Args args;
 };
 
 #endif //NC2CSV_CONVERSIONJOB_H
