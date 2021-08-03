@@ -89,13 +89,12 @@ public:
     DimValues get_dim_values(size_t _1d_index);
 
     const std::map<std::string, VariableMetadata> &get_metadata_view() const;
-    std::set<std::string> get_nonstandard_vars() const;
 
     const std::string filename;
     const std::vector<std::string> basic_dims;
     std::set<std::string> wanted_variables;
 private:
-    static std::set<std::string> get_nonstandard_vars(const netCDF::NcFile &nc_file);
+    std::set<std::string> get_nonbasic_vars(const netCDF::NcFile &nc_file);
     static size_t get_data_size(const netCDF::NcVar &nc_var);
     static double get_missing_value(const netCDF::NcVar &nc_var);
     static std::string get_standard_name(const netCDF::NcVar &nc_var);

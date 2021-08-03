@@ -81,7 +81,7 @@ FastNcFile::FastNcFile(std::string _filename, std::vector<std::string> _basic_di
     }
 
     if (_wanted_variables.empty()) {
-        _wanted_variables = get_nonstandard_vars(nc_file);
+        _wanted_variables = get_nonbasic_vars(nc_file);
     }
 
     for (const auto &var : _wanted_variables) {
@@ -147,21 +147,13 @@ size_t FastNcFile::get_data_size(const netCDF::NcVar &nc_var) {
     return size;
 }
 
-std::set<std::string> FastNcFile::get_nonstandard_vars(const netCDF::NcFile &nc_file) {
+std::set<std::string> FastNcFile::get_nonbasic_vars(const netCDF::NcFile &nc_file) {
     std::set<std::string> vars;
     for (const auto &var : nc_file.getVars()) {
-        if (find(CF_STANDARD_DIMS.begin(), CF_STANDARD_DIMS.end(), var.first) == CF_STANDARD_DIMS.end()) {
+        if (find(basic_dims.begin(), basic_dims.end(), var.first) == basic_dims.end() &&
+            find(CF_STANDARD_DIMS.begin(), CF_STANDARD_DIMS.end(), var.first) == CF_STANDARD_DIMS.end()) {
             vars.insert(var.first);
         }
-    }
-
-    return vars;
-}
-
-std::set<std::string> FastNcFile::get_nonstandard_vars() const {
-    std::set<std::string> vars;
-    for (const auto &pair : metadata) {
-        vars.insert(pair.first);
     }
 
     return vars;
