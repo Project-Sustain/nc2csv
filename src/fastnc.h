@@ -72,7 +72,8 @@
 #include <memory>
 #include "cfdims.h"
 
-constexpr size_t INVALID_INDEX = -1;
+using MetadataMap = std::map<std::string, VariableMetadata>;
+using DataMap = std::map<std::string, double*>;
 
 class FastNcFile {
 public:
@@ -88,7 +89,7 @@ public:
     double *get_all_data(const std::string &variable);
     DimValues get_dim_values(size_t _1d_index);
 
-    const std::map<std::string, VariableMetadata> &get_metadata_view() const;
+    const MetadataMap &get_metadata_view() const;
 
     const std::string filename;
     const std::vector<std::string> basic_dims;
@@ -103,8 +104,8 @@ private:
     void cache(const netCDF::NcFile &nc_file, const std::string &variable);
     void verify_consistent_var_sizes();
 
-    std::map<std::string, double*> data;
-    std::map<std::string, VariableMetadata> metadata;
+    DataMap data;
+    MetadataMap metadata;
 };
 
 #endif //NC2CSV_FASTNC_H
