@@ -87,7 +87,7 @@ std::function<void()> ConversionJob::get_function() const {
         FastNcFile nc_file(nc_filename, { args.time_property, args.lat_property, args.lon_property }, {});
         write_header(nc_file, *p_csv_file);
 
-        TimeMap time_map = get_time_map(nc_filename);
+        TimeMap time_map = get_time_map(nc_filename, args.time_property);
         std::function<std::string(double)> time_mapper_fn = [&time_map](double t) { return time_map[t]; };
         write_data(nc_file, *p_csv_file, time_mapper_fn);
 
