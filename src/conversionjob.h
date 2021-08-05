@@ -79,6 +79,8 @@ public:
     explicit ConversionJob(std::string nc_filename, Args _args);
 
     std::function<void()> get_function() const;
+    std::function<void()> get_dimension_write_function() const;
+    std::function<void()> get_variable_write_function() const;
     explicit operator std::function<void()>() const;
 private:
     std::shared_ptr<std::ofstream> p_csv_file;

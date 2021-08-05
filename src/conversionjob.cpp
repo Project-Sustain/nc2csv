@@ -83,8 +83,29 @@ std::string ConversionJob::nc_path_to_csv_path(const std::string &nc_pathname) {
 }
 
 std::function<void()> ConversionJob::get_function() const {
+    if (args.dimension_mode) {
+        return get_dimension_write_function();
+    } else {
+        return get_variable_write_function();
+    }
+}
+
+ConversionJob::operator std::function<void()>() const {
+    return get_function();
+}
+
+std::function<void()> ConversionJob::get_dimension_write_function() const {
     return [this] {
         FastNcFile nc_file(nc_filename, { args.time_property, args.lat_property, args.lon_property }, {});
+
+        write_dimensions(nc_file, args.standalone_dimensions, *p_csv_file);
+    };
+}
+
+std::function<void()> ConversionJob::get_variable_write_function() const {
+    return [this] {
+        FastNcFile nc_file(nc_filename, { args.time_property, args.lat_property, args.lon_property }, {});
+
         write_header(nc_file, *p_csv_file);
 
         TimeMap time_map = get_time_map(nc_filename, args.time_property);
@@ -93,8 +114,4 @@ std::function<void()> ConversionJob::get_function() const {
 
         std::cout << nc_filename << std::endl;
     };
-}
-
-ConversionJob::operator std::function<void()>() const {
-    return get_function();
 }
