@@ -23,6 +23,7 @@ TEST_CASE("Can open file with inconsistent variable sizes given consistent varia
     FastNcFile f("../resources/ncar_example.nc", { "pr", "tas" });
 }
 
+/*
 TEST_CASE("Can get arbitrary attributes") {
     netCDF::NcFile f("../resources/gridmet_temp_example.nc", netCDF::NcFile::read);
     netCDF::NcVar var = f.getVar("air_temperature");
@@ -31,3 +32,4 @@ TEST_CASE("Can get arbitrary attributes") {
     REQUIRE(FastNcFile::get_attribute<int>(var, "add_offset") == 220);
     REQUIRE(FastNcFile::get_attribute<std::string>(var, "long_name") == "tmmx");
 }
+*/

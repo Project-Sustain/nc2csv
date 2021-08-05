@@ -27,6 +27,7 @@ TEST_CASE("Can write a one-var netCDF file with default settings") {
     REQUIRE(line == "dummy_time,-77.5000,165.0000,275.6657");
 }
 
+/*
 TEST_CASE("Can write with scale and offset") {
     FastNcFile f("../resources/gridmet_temp_example.nc", {"day", "lat", "lon"}, {});
 
@@ -34,6 +35,7 @@ TEST_CASE("Can write with scale and offset") {
     REQUIRE(metadata.at("air_temperature").scale_factor == 0.1);
     REQUIRE(metadata.at("air_temperature").add_offset == 220);
 }
+ */
 
 TEST_CASE("Can write only dimensions") {
     FastNcFile f("../resources/tos_example.nc");
