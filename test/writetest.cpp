@@ -1,6 +1,7 @@
 #include "doctest.h"
 #include "../src/fastnc.h"
 #include "../src/write.h"
+#include "../src/args.h"
 #include <functional>
 #include <sstream>
 #include <algorithm>
@@ -15,7 +16,7 @@ TEST_CASE("Can write a one-var netCDF file with default settings") {
     REQUIRE(ss.str() == "time,lat,lon,sea_surface_temperature\n");
 
     std::function<std::string(double)> dummy_mapper = [](double) { return "dummy_time"; };
-    write_data(f, ss, dummy_mapper);
+    write_data(f, ss, dummy_mapper, parse_args({ "" }));
 
     // Very superficial tests - the full dataset is over 700 records.
     std::string line;
@@ -24,6 +25,14 @@ TEST_CASE("Can write a one-var netCDF file with default settings") {
     REQUIRE(line == "dummy_time,-78.5000,181.0000,275.8637");
     std::getline(ss, line);
     REQUIRE(line == "dummy_time,-77.5000,165.0000,275.6657");
+}
+
+TEST_CASE("Can write with scale and offset") {
+    FastNcFile f("../resources/gridmet_temp_example.nc", {"day", "lat", "lon"}, {});
+
+    const MetadataMap &metadata = f.get_metadata_view();
+    REQUIRE(metadata.at("air_temperature").scale_factor == 0.1);
+    REQUIRE(metadata.at("air_temperature").add_offset == 220);
 }
 
 TEST_CASE("Can write only dimensions") {

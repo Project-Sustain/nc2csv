@@ -108,34 +108,17 @@ FastNcFile::~FastNcFile() {
 void FastNcFile::cache(const netCDF::NcFile &nc_file, const std::string &variable) {
     netCDF::NcVar nc_var = nc_file.getVar(variable);
 
+    double sentinel_value = get_attribute<double>(nc_var, "missing_value");
     size_t size = get_data_size(nc_var);
-    double sentinel_value = get_missing_value(nc_var);
-    std::string standard_name = get_standard_name(nc_var);
+    std::string standard_name = get_attribute<std::string>(nc_var, "standard_name");
+    double scale_factor = get_attribute<double>(nc_var, "scale_factor");
+    double offset = get_attribute<double>(nc_var, "add_offset");
+    std::vector<std::string> dimension_order = get_ordered_dims_for(nc_var);
 
     data[variable] = new double[size];
-    metadata[variable] = { sentinel_value, size, standard_name };
+    metadata[variable] = { sentinel_value, size, standard_name, scale_factor, offset, dimension_order};
 
     nc_var.getVar(data[variable]);
-}
-
-double FastNcFile::get_missing_value(const netCDF::NcVar &nc_var) {
-    double missing_value = -1;
-
-    try {
-        nc_var.getAtt("missing_value").getValues(&missing_value);
-    } catch (const netCDF::exceptions::NcException &ignored) { }
-
-    return missing_value;
-}
-
-std::string FastNcFile::get_standard_name(const netCDF::NcVar &nc_var) {
-    std::string standard_name;
-
-    try {
-        nc_var.getAtt("standard_name").getValues(standard_name);
-    } catch (const netCDF::exceptions::NcException &ignored) { }
-
-    return standard_name;
 }
 
 size_t FastNcFile::get_data_size(const netCDF::NcVar &nc_var) {
@@ -167,22 +150,24 @@ double *FastNcFile::get_all_data(const std::string &variable) {
     return data[variable];
 }
 
-DimValues FastNcFile::get_dim_values(size_t _1d_index) {
+DimValues FastNcFile::get_dim_values(size_t _1d_index, const std::string &var) {
     DimValues values{};
 
-    std::list<size_t> indices = _1d_index_to_dim_indices(_1d_index);
-    auto it = indices.begin();
+    std::vector<size_t> indices = _1d_index_to_dim_indices(_1d_index, var);
 
-    values.lon = get_dim_value(basic_dims[2], *it++);
-    values.lat = get_dim_value(basic_dims[1], *it++);
-    values.time = get_dim_value(basic_dims[0], *it++);
+    for (size_t i = 0; i < indices.size(); i++) {
+        size_t inverted_i = indices.size() - i - 1;
+        std::string dim = metadata[var].dimension_order[inverted_i];
+        values[dim] = get_dim_value(dim, indices[i]);
+    }
 
     return values;
 }
 
-std::list<size_t> FastNcFile::_1d_index_to_dim_indices(size_t _1d_index) {
-    std::list<size_t> indices;
-    for (auto it = basic_dims.rbegin(); it != basic_dims.rend(); it++) {
+std::vector<size_t> FastNcFile::_1d_index_to_dim_indices(size_t _1d_index, const std::string &var) {
+    std::vector<size_t> indices;
+    std::vector<std::string> order = metadata[var].dimension_order;
+    for (auto it = order.rbegin(); it != order.rend(); it++) {
         auto dim = *it;
         size_t dim_size = metadata[dim].length;
         indices.push_back(_1d_index % dim_size);
@@ -214,5 +199,10 @@ void FastNcFile::verify_consistent_var_sizes() {
     }
 }
 
-
-
+std::vector<std::string> FastNcFile::get_ordered_dims_for(const netCDF::NcVar &nc_var) {
+    std::vector<std::string> dims;
+    for (const auto &nc_dim : nc_var.getDims()) {
+        dims.push_back(nc_dim.getName());
+    }
+    return dims;
+}

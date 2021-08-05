@@ -3,16 +3,15 @@
 
 #include <string>
 
-struct DimValues {
-    double time;
-    double lat;
-    double lon;
-};
+using DimValues = std::map<std::string, double>;
 
 struct VariableMetadata {
     double missing_value;
     size_t length;
     std::string standard_name;
+    double scale_factor;
+    double add_offset;
+    std::vector<std::string> dimension_order;
 };
 
 const std::vector<std::string> CF_DEFAULT_BASIC_DIMS{"time", "lat", "lon"};
