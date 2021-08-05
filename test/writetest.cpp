@@ -12,7 +12,7 @@ TEST_CASE("Can write a one-var netCDF file with default settings") {
     write_header(f, ss);
 
     ss.flush();
-    REQUIRE(ss.str() == "time,lat,lon,sea_surface_temperature,\n");
+    REQUIRE(ss.str() == "time,lat,lon,sea_surface_temperature\n");
 
     std::function<std::string(double)> dummy_mapper = [](double) { return "dummy_time"; };
     write_data(f, ss, dummy_mapper);
@@ -38,7 +38,7 @@ TEST_CASE("Can write only dimensions") {
 
     std::string line;
     std::getline(ss, line);
-    REQUIRE(line == "lat,lon,");
+    REQUIRE(line == "lat,lon");
     std::getline(ss, line);
     REQUIRE(line == "-79.5000,1.0000");
     std::getline(ss, line);

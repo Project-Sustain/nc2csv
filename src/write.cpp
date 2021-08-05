@@ -68,19 +68,22 @@
 #include <string>
 #include <algorithm>
 #include <iomanip>
+#include <sstream>
 
 void write_header(FastNcFile &nc_file, std::ostream &csv_file) {
+    std::string header;
     for (const auto &dim : nc_file.basic_dims) {
-        csv_file << dim << ",";
+        header += dim + ",";
     }
 
     auto var_metadata = nc_file.get_metadata_view();
     for (const auto &var : nc_file.wanted_variables) {
         std::string name = var_metadata[var].standard_name;
-        csv_file << name << ",";
+        header += name + ",";
     }
+    header = header.substr(0, header.length() - 1);
 
-    csv_file << "\n";
+    csv_file << header << "\n";
 }
 
 void write_data(FastNcFile &nc_file, std::ostream &csv_file, std::function<std::string(double)> &time_mapper) {
@@ -108,10 +111,13 @@ void write_variable(FastNcFile &nc_file, const std::string &var, std::ostream &c
 
 void write_dimensions(FastNcFile &nc_file, const std::set<std::string> &dims, std::ostream &csv_file) {
     csv_file << std::setprecision(4) << std::fixed;
+
+    std::string header;
     for (const std::string &dim : dims) {
-        csv_file << dim << ",";
+        header += dim + ",";
     }
-    csv_file << "\n";
+    header = header.substr(0, header.length() - 1);
+    csv_file << header << "\n";
 
     write_dimensions_given(nc_file, dims, {}, csv_file);
 }
