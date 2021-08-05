@@ -86,26 +86,49 @@ void write_header(FastNcFile &nc_file, std::ostream &csv_file) {
     csv_file << header << "\n";
 }
 
-void write_data(FastNcFile &nc_file, std::ostream &csv_file, std::function<std::string(double)> &time_mapper) {
+void write_data(FastNcFile &nc_file,
+                std::ostream &csv_file,
+                std::function<std::string(double)> &time_mapper,
+                const Args &args) {
     for (const auto &var : nc_file.wanted_variables) {
-        write_variable(nc_file, var, csv_file, time_mapper);
+        write_variable(nc_file, var, csv_file, time_mapper, args);
     }
 }
 
-void write_variable(FastNcFile &nc_file, const std::string &var, std::ostream &csv_file, std::function<std::string(double)> &time_mapper) {
+void write_variable(FastNcFile &nc_file,
+                    const std::string &var,
+                    std::ostream &csv_file,
+                    std::function<std::string(double)> &time_mapper,
+                    const Args &args) {
     csv_file << std::setprecision(4) << std::fixed;
 
     double *data = nc_file.get_all_data(var);
     auto var_metadata = nc_file.get_metadata_view();
+    auto data_transform = [&var_metadata, &var](double entry) -> double {
+        double new_entry = entry;
+        if (var_metadata[var].scale_factor != std::numeric_limits<double>::min()) {
+            new_entry *= var_metadata[var].scale_factor;
+        }
+
+        if (var_metadata[var].add_offset != std::numeric_limits<double>::min()) {
+            new_entry += var_metadata[var].add_offset;
+        }
+
+        return new_entry;
+    };
 
     for (size_t _1d_i = 0; _1d_i < var_metadata[var].length; _1d_i++) {
         if (data[_1d_i] == var_metadata[var].missing_value) {
             continue;
         }
 
-        DimValues vals = nc_file.get_dim_values(_1d_i);
+        DimValues vals = nc_file.get_dim_values(_1d_i, var);
+        double entry = data_transform(data[_1d_i]);
 
-        csv_file << time_mapper(vals.time) << "," << vals.lat << "," << vals.lon << "," << data[_1d_i] << "\n";
+        csv_file << time_mapper(vals[args.time_property])
+                 << "," << vals[args.lat_property]
+                 << "," << vals[args.lon_property]
+                 << "," << entry << "\n";
     }
 }
 

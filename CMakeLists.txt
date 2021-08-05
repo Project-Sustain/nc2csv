@@ -25,10 +25,15 @@ set(COMMON_SOURCES
         src/args.cpp
         src/fastnc.cpp
         src/cftime.cpp
-        src/conversionjob.cpp src/jobpool.cpp src/jobpool.h src/commonmutex.h)
+        src/conversionjob.cpp
+        src/jobpool.cpp)
 
 set(TESTS
-        test/main.cpp test/fastnctest.cpp test/argstest.cpp test/cftimetest.cpp test/writetest.cpp)
+        test/main.cpp
+        test/fastnctest.cpp
+        test/argstest.cpp
+        test/cftimetest.cpp
+        test/writetest.cpp)
 
 set(HEADERS)
 

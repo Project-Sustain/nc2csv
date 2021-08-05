@@ -110,7 +110,7 @@ std::function<void()> ConversionJob::get_variable_write_function() const {
 
         TimeMap time_map = get_time_map(nc_filename, args.time_property);
         std::function<std::string(double)> time_mapper_fn = [&time_map](double t) { return time_map[t]; };
-        write_data(nc_file, *p_csv_file, time_mapper_fn);
+        write_data(nc_file, *p_csv_file, time_mapper_fn, args);
 
         std::cout << nc_filename << std::endl;
     };

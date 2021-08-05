@@ -87,25 +87,45 @@ public:
 
     double get_dim_value(const std::string &dim, size_t index);
     double *get_all_data(const std::string &variable);
-    DimValues get_dim_values(size_t _1d_index);
+    DimValues get_dim_values(size_t _1d_index, const std::string &var);
+
+    template <typename Fundamental>
+    static typename std::enable_if<std::is_fundamental<Fundamental>::value, Fundamental>::type
+    get_attribute(const netCDF::NcVar &nc_var, const std::string &attr_name) {
+        Fundamental attr = std::numeric_limits<Fundamental>::min();
+        try {
+            nc_var.getAtt(attr_name).getValues(&attr);
+        } catch (const netCDF::exceptions::NcException &ignored) {}
+        return attr;
+    }
+
+    template <typename Object>
+    static typename std::enable_if<!std::is_fundamental<Object>::value && std::is_default_constructible<Object>::value, Object>::type
+    get_attribute(const netCDF::NcVar &nc_var, const std::string &attr_name) {
+        Object attr;
+        try {
+            nc_var.getAtt(attr_name).getValues(attr);
+        } catch (const netCDF::exceptions::NcException &ignored) {}
+        return attr;
+    }
 
     const MetadataMap &get_metadata_view() const;
 
     const std::string filename;
-    const std::vector<std::string> basic_dims;
+    std::vector<std::string> basic_dims;
     std::set<std::string> wanted_variables;
-private:
+protected:
     std::set<std::string> get_nonbasic_vars(const netCDF::NcFile &nc_file);
     static size_t get_data_size(const netCDF::NcVar &nc_var);
-    static double get_missing_value(const netCDF::NcVar &nc_var);
-    static std::string get_standard_name(const netCDF::NcVar &nc_var);
 
-    std::list<size_t> _1d_index_to_dim_indices(size_t _1d_index);
+    std::vector<size_t> _1d_index_to_dim_indices(size_t _1d_index, const std::string &var);
     void cache(const netCDF::NcFile &nc_file, const std::string &variable);
     void verify_consistent_var_sizes();
+    std::vector<std::string> get_ordered_dims_for(const netCDF::NcVar &nc_var);
 
     DataMap data;
     MetadataMap metadata;
 };
+
 
 #endif //NC2CSV_FASTNC_H
