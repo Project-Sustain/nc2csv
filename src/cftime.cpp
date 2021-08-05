@@ -68,15 +68,15 @@
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 
-CFTimeMapper::CFTimeMapper() {
+TimeMapLock::TimeMapLock() {
     pybind11::initialize_interpreter();
 }
 
-CFTimeMapper::~CFTimeMapper() {
+TimeMapLock::~TimeMapLock() {
     pybind11::finalize_interpreter();
 }
 
-std::map<double, std::string> CFTimeMapper::get_time_map(const std::string &filename) {
+TimeMap get_time_map(const std::string &filename, const std::string &time_dim) {
     using namespace pybind11::literals;
     std::lock_guard<std::mutex> nc_lock(common_mutex);
 
@@ -86,11 +86,10 @@ std::map<double, std::string> CFTimeMapper::get_time_map(const std::string &file
     interpreter_globals["netCDF4"] = netCDF4;
     interpreter_globals["cftime"] = cftime;
 
-    pybind11::dict locals = pybind11::dict("filename"_a=filename);
+    pybind11::dict locals = pybind11::dict("filename"_a=filename, "time_dim"_a=time_dim);
     pybind11::exec(TIME_MAPPER_SCRIPT_PY, interpreter_globals, locals);
 
-    std::map<double, std::string> time_map = locals["time_map"].cast<std::map<double, std::string>>();
+    TimeMap time_map = locals["time_map"].cast<TimeMap>();
 
     return time_map;
 }
-

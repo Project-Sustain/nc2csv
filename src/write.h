@@ -75,5 +75,7 @@
 void write_header(FastNcFile &nc_file, std::ostream &csv_file);
 void write_data(FastNcFile &nc_file, std::ostream &csv_file, std::function<std::string(double)> &time_mapper);
 void write_variable(FastNcFile &nc_file, const std::string &var, std::ostream &csv_file, std::function<std::string(double)> &time_mapper);
+void write_dimensions(FastNcFile &nc_file, const std::set<std::string> &dims, std::ostream &csv_file);
+void write_dimensions_given(FastNcFile &nc_file, const std::set<std::string> &dims, const std::vector<double> &given, std::ostream &csv_file);
 
 #endif //NC2CSV_WRITE_H

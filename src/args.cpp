@@ -79,8 +79,8 @@ OPTIONS
     -c : amount of threads to spawn for processing
          CAREFUL: each thread will process one file, and the ENTIRE uncompressed
          netCDF file must fit into this thread's memory. Setting this value
-         too high WILL cause your system to run out of memory, though it
-         results in massive performance increases if you have the memory.
+         too high WILL cause your system to run out of memory, but setting it
+         too low may result in poor performance.
          (default 3)
     -t : the name of the dimension that provides time units
          (default "time")
@@ -88,6 +88,10 @@ OPTIONS
          (default "lat")
     -g : the name of the dimension that provides longitude units
          (default "lon")
+    -d : operate in "dimension mode", where every value of the given dimensions
+         are output INSTEAD of any variable.
+         Accepts a comma-separated list, such as "lat,lon"
+
 )";
 }
 
@@ -136,6 +140,9 @@ void parse_opts(Args &a, std::vector<std::string> &args) {
             a.lat_property = args[i + 1];
         } else if (flag == "-g") {
             a.lon_property = args[i + 1];
+        } else if (flag == "-d") {
+            a.dimension_mode = true;
+            a.standalone_dimensions = split(args[i + 1], ",");
         }
     }
 
@@ -148,6 +155,21 @@ void parse_files(Args &a, std::vector<std::string> &args) {
     for (const auto &file : args) {
         a.files.push_back(file);
     }
+}
+
+std::set<std::string> split(const std::string &words, const std::string &delimiter) {
+    std::set<std::string> collected_words;
+    size_t start = 0;
+    size_t end = words.find(delimiter);
+    while (end != std::string::npos) {
+        collected_words.insert(words.substr(start, end - start));
+        start = words.find(delimiter, start + 1) + 1;
+        end = words.find(delimiter, start);
+    }
+
+    collected_words.insert(words.substr(start));
+
+    return collected_words;
 }
 
 Args get_failed_args() {

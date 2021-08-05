@@ -68,19 +68,22 @@
 #include <string>
 #include <algorithm>
 #include <iomanip>
+#include <sstream>
 
 void write_header(FastNcFile &nc_file, std::ostream &csv_file) {
+    std::string header;
     for (const auto &dim : nc_file.basic_dims) {
-        csv_file << dim << ",";
+        header += dim + ",";
     }
 
     auto var_metadata = nc_file.get_metadata_view();
     for (const auto &var : nc_file.wanted_variables) {
         std::string name = var_metadata[var].standard_name;
-        csv_file << name << ",";
+        header += name + ",";
     }
+    header = header.substr(0, header.length() - 1);
 
-    csv_file << "\n";
+    csv_file << header << "\n";
 }
 
 void write_data(FastNcFile &nc_file, std::ostream &csv_file, std::function<std::string(double)> &time_mapper) {
@@ -105,3 +108,47 @@ void write_variable(FastNcFile &nc_file, const std::string &var, std::ostream &c
         csv_file << time_mapper(vals.time) << "," << vals.lat << "," << vals.lon << "," << data[_1d_i] << "\n";
     }
 }
+
+void write_dimensions(FastNcFile &nc_file, const std::set<std::string> &dims, std::ostream &csv_file) {
+    csv_file << std::setprecision(4) << std::fixed;
+
+    std::string header;
+    for (const std::string &dim : dims) {
+        header += dim + ",";
+    }
+    header = header.substr(0, header.length() - 1);
+    csv_file << header << "\n";
+
+    write_dimensions_given(nc_file, dims, {}, csv_file);
+}
+
+void write_dimensions_given(FastNcFile &nc_file, const std::set<std::string> &dims, const std::vector<double> &given, std::ostream &csv_file) {
+    if (dims.empty()) {
+        return;
+    }
+
+    std::string dim_name = *dims.begin();
+    const MetadataMap &metadata = nc_file.get_metadata_view();
+    double *data = nc_file.get_all_data(dim_name);
+    size_t data_size = metadata.at(dim_name).length;
+
+    bool base = dims.size() == 1;
+
+    for (size_t i = 0; i < data_size; i++) {
+        if (base) {
+            for (double d : given) {
+                csv_file << d << ",";
+            }
+            csv_file << data[i] << "\n";
+        } else {
+            std::set<std::string> difference;
+            std::set<std::string> used{dim_name};
+            std::set_difference(dims.begin(), dims.end(), used.begin(), used.end(), std::inserter(difference, difference.begin()));
+
+            std::vector<double> next_given(given);
+            next_given.push_back(data[i]);
+            write_dimensions_given(nc_file, difference, next_given, csv_file);
+        }
+    }
+}
+

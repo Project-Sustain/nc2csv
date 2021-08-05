@@ -76,11 +76,11 @@ int main(int argc, char** argv) {
             return 0;
         }
 
-        std::shared_ptr<CFTimeMapper> p_time_mapper{new CFTimeMapper()};
+        TimeMapLock lock;
 
         std::vector<ConversionJob> jobs;
         for (const auto &filename : args.files) {
-            jobs.emplace_back(filename, p_time_mapper, args);
+            jobs.emplace_back(filename, args);
         }
 
         JobPool pool(args.concurrency);

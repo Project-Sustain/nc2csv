@@ -68,8 +68,8 @@
 #include <utility>
 #include "write.h"
 
-ConversionJob::ConversionJob(std::string _nc_filename, std::shared_ptr<CFTimeMapper> _p_time_mapper, Args _args) :
-    p_time_mapper(std::move(_p_time_mapper)), nc_filename(std::move(_nc_filename)), args(std::move(_args)) {
+ConversionJob::ConversionJob(std::string _nc_filename, Args _args) :
+    nc_filename(std::move(_nc_filename)), args(std::move(_args)) {
 
     p_csv_file = std::make_shared<std::ofstream>(nc_path_to_csv_path(nc_filename));
 }
@@ -83,18 +83,35 @@ std::string ConversionJob::nc_path_to_csv_path(const std::string &nc_pathname) {
 }
 
 std::function<void()> ConversionJob::get_function() const {
+    if (args.dimension_mode) {
+        return get_dimension_write_function();
+    } else {
+        return get_variable_write_function();
+    }
+}
+
+ConversionJob::operator std::function<void()>() const {
+    return get_function();
+}
+
+std::function<void()> ConversionJob::get_dimension_write_function() const {
     return [this] {
         FastNcFile nc_file(nc_filename, { args.time_property, args.lat_property, args.lon_property }, {});
+
+        write_dimensions(nc_file, args.standalone_dimensions, *p_csv_file);
+    };
+}
+
+std::function<void()> ConversionJob::get_variable_write_function() const {
+    return [this] {
+        FastNcFile nc_file(nc_filename, { args.time_property, args.lat_property, args.lon_property }, {});
+
         write_header(nc_file, *p_csv_file);
 
-        auto time_map = p_time_mapper->get_time_map(nc_filename);
+        TimeMap time_map = get_time_map(nc_filename, args.time_property);
         std::function<std::string(double)> time_mapper_fn = [&time_map](double t) { return time_map[t]; };
         write_data(nc_file, *p_csv_file, time_mapper_fn);
 
         std::cout << nc_filename << std::endl;
     };
-}
-
-ConversionJob::operator std::function<void()>() const {
-    return get_function();
 }

@@ -75,9 +75,9 @@ const std::string TIME_MAPPER_SCRIPT_PY = R"(
 import netCDF4
 import cftime
 
-def make_time_map(filename):
+def make_time_map(filename, time_dim):
     nc_file = netCDF4.Dataset(filename)
-    time = nc_file["day"]
+    time = nc_file[time_dim]
 
     transformed_times = cftime.num2date(time[:].filled(), time.units, time.calendar)
     iso_times = list(map(lambda t: t.isoformat(), transformed_times))
@@ -88,20 +88,20 @@ def make_time_map(filename):
 
     return time_map
 
-time_map = make_time_map(filename);
+time_map = make_time_map(filename, time_dim);
 )";
 
-class CFTimeMapper {
+using TimeMap = std::map<double, std::string>;
+
+class TimeMapLock {
 public:
-    CFTimeMapper();
-    ~CFTimeMapper();
+    TimeMapLock();
+    ~TimeMapLock();
 
-    static std::map<double, std::string> get_time_map(const std::string &filename);
-
-    CFTimeMapper(const CFTimeMapper &other) = delete;
-    CFTimeMapper &operator=(const CFTimeMapper &other) = delete;
-private:
-    std::mutex interpreter_mutex;
+    TimeMapLock(const TimeMapLock &other) = delete;
+    TimeMapLock &operator=(const TimeMapLock &other) = delete;
 };
+
+TimeMap get_time_map(const std::string &filename, const std::string &time_dim);
 
 #endif //NC2CSV_CFTIME_H
