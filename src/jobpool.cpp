@@ -9,7 +9,7 @@ void JobPool::run(const std::vector<std::function<void()>> &jobs) {
         spawn_variable.wait(spawn_lock, [this] { return running < size; });
         running++;
 
-        threads.emplace_back([fn, this] {
+        threads.emplace_back([&fn, this] {
             fn();
 
             std::lock_guard<std::mutex> spawn_lock(spawn_mutex);

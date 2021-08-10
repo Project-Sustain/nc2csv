@@ -38,7 +38,7 @@ set(TESTS
 set(HEADERS)
 
 add_executable(nc2csv ${NC2CSV_SOURCES} ${COMMON_SOURCES})
-add_executable(tests EXCLUDE_FROM_ALL ${TESTS} ${COMMON_SOURCES})
+add_executable(tests ${TESTS} ${COMMON_SOURCES})
 add_test(n2csvtest tests)
 
 target_link_libraries(nc2csv pybind11::embed)

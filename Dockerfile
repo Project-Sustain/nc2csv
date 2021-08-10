@@ -8,4 +8,4 @@ RUN apt-get update && apt-get install -y cmake build-essential pybind11-dev pyth
 RUN pip install netCDF4
 RUN cd /nc2csv && cmake . && make
 
-CMD "/nc2csv/nc2csv", "/ncfiles/*"
+CMD "/bin/bash"

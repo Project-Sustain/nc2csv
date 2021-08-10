@@ -83,11 +83,21 @@ std::string ConversionJob::nc_path_to_csv_path(const std::string &nc_pathname) {
 }
 
 std::function<void()> ConversionJob::get_function() const {
+    std::function<void()> fn;
     if (args.dimension_mode) {
-        return get_dimension_write_function();
+        fn = get_dimension_write_function();
     } else {
-        return get_variable_write_function();
+        fn = get_variable_write_function();
     }
+
+    return [this, fn] {
+        try {
+            fn();
+        } catch (const netCDF::exceptions::NcException &e) {
+            std::cerr << "Failed to convert file \"" << nc_filename << "\":\n";
+            std::cerr << e.what() << "\n";
+        }
+    };
 }
 
 ConversionJob::operator std::function<void()>() const {
