@@ -26,7 +26,7 @@ set(COMMON_SOURCES
         src/fastnc.cpp
         src/cftime.cpp
         src/conversionjob.cpp
-        src/jobpool.cpp)
+        src/jobpool.cpp src/gisjoinmap.cpp src/gisjoinmap.h)
 
 set(TESTS
         test/main.cpp

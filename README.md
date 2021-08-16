@@ -61,5 +61,6 @@ time,lat,lon,<another variable>
 * `-t dimension` specifies the name of the time dimension. Necessary on datasets like Gridmet that deviate from the standard "time" name. Defaults to "time".
 * `-a dimension` specifies the name of the latitude dimension. Defaults to "lat".
 * `-g dimension` specifies the name of the longitude dimension. Defaults to "lon".
+* `-r host:port` activates GISJOIN map mode. In addition to converting, for each point in the input dataset, the given host and port are queried to discover the GISJOIN that maps to the given points, then the GISJOIN is output in the resulting CSV as the first column. There must be an active Redis server at the given host and port that has been populated with a filter set, as per the geosieve-create tool.
 
 Options must be placed before any files passed to the program.
