@@ -117,6 +117,16 @@ void write_variable(FastNcFile &nc_file,
         return new_entry;
     };
 
+    auto coord_transform = [](double coord) -> double {
+        if (coord > 180) {
+            return coord - 360;
+        } else if (coord < -180) {
+            return coord + 360;
+        } else {
+            return coord;
+        }
+    };
+
     for (size_t _1d_i = 0; _1d_i < var_metadata[var].length; _1d_i++) {
         if (data[_1d_i] == var_metadata[var].missing_value) {
             continue;
@@ -126,8 +136,8 @@ void write_variable(FastNcFile &nc_file,
         double entry = data_transform(data[_1d_i]);
 
         csv_file << time_mapper(vals[args.time_property])
-                 << "," << vals[args.lat_property]
-                 << "," << vals[args.lon_property]
+                 << "," << coord_transform(vals[args.lat_property])
+                 << "," << coord_transform(vals[args.lon_property])
                  << "," << entry << "\n";
     }
 }

@@ -109,6 +109,10 @@ void FastNcFile::cache(const netCDF::NcFile &nc_file, const std::string &variabl
     netCDF::NcVar nc_var = nc_file.getVar(variable);
 
     double sentinel_value = get_attribute<double>(nc_var, "missing_value");
+    if (sentinel_value == std::numeric_limits<double>::min()) {
+        sentinel_value = get_attribute<double>(nc_var, "_FillValue");
+    }
+
     size_t size = get_data_size(nc_var);
     std::string standard_name = get_attribute<std::string>(nc_var, "standard_name");
     double scale_factor = get_attribute<double>(nc_var, "scale_factor");
