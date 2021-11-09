@@ -73,9 +73,11 @@ nc2csv - convert netCDF to CSV
 
 USAGE
     nc2csv [-c concurrency] [-t time_dimension] [-a lat_dimension]
-           [-g lng_dimension] files...
+           [-g lng_dimension] [-s timestamps] files...
+    nc2csv [-d dimensions] files...
 
 OPTIONS
+    -h : show this help screen
     -c : amount of threads to spawn for processing
          CAREFUL: each thread will process one file, and the ENTIRE uncompressed
          netCDF file must fit into this thread's memory. Setting this value
@@ -88,6 +90,8 @@ OPTIONS
          (default "lat")
     -g : the name of the dimension that provides longitude units
          (default "lon")
+    -s : a comma-separated list of timestamps - only data for these timestamps will
+         be output
     -d : operate in "dimension mode", where every value of the given dimensions
          are output INSTEAD of any variable.
          Accepts a comma-separated list, such as "lat,lon"
@@ -143,6 +147,12 @@ void parse_opts(Args &a, std::vector<std::string> &args) {
         } else if (flag == "-d") {
             a.dimension_mode = true;
             a.standalone_dimensions = split(args[i + 1], ",");
+        } else if (flag == "-s") {
+            a.timestamps = split(args[i + 1], ",");
+        } else if (flag == "-h") {
+            a.abort = true;
+            usage();
+            break;
         }
     }
 

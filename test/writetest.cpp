@@ -22,7 +22,7 @@ TEST_CASE("Can write a one-var netCDF file with default settings") {
     std::string line;
     std::getline(ss, line);
     std::getline(ss, line);
-    REQUIRE(line == "dummy_time,-78.5000,181.0000,275.8637");
+    REQUIRE(line == "dummy_time,-78.5000,-179.0000,275.8637");
     std::getline(ss, line);
     REQUIRE(line == "dummy_time,-77.5000,165.0000,275.6657");
 }
@@ -54,4 +54,25 @@ TEST_CASE("Can write only dimensions") {
     REQUIRE(line == "-79.5000,1.0000");
     std::getline(ss, line);
     REQUIRE(line == "-79.5000,3.0000");
+}
+
+TEST_CASE("Can write only specific timestamps") {
+    FastNcFile f("../resources/tos_example.nc");
+
+    std::stringstream ss;
+    std::function<std::string(double)> dummy_mapper = [] (double time) -> std::string {
+        if (time == 345.0) {
+            return "2020-01-01T00:00:00";
+        } else if (time == 135.0) {
+            return "2020-01-03T00:00:00";
+        } else {
+            return "2020-01-05T00:00:00";
+        }
+    };
+
+    write_variable(f, "tos", ss, dummy_mapper, parse_args({ "-s", "2020-01-01,2020-01-03", "" }));
+
+    std::string line;
+    std::getline(ss, line);
+    REQUIRE(line == "2020-01-03T00:00:00,-78.5000,-179.0000,271.9052");
 }

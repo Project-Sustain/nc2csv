@@ -77,6 +77,7 @@ struct Args {
     std::string lat_property{"lat"};
     std::string lon_property{"lon"};
     std::set<std::string> standalone_dimensions{};
+    std::set<std::string> timestamps{};
     bool dimension_mode{false};
     bool abort{false};
 };

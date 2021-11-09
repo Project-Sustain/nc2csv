@@ -135,7 +135,17 @@ void write_variable(FastNcFile &nc_file,
         DimValues vals = nc_file.get_dim_values(_1d_i, var);
         double entry = data_transform(data[_1d_i]);
 
-        csv_file << time_mapper(vals[args.time_property])
+        std::string timestamp = time_mapper(vals[args.time_property]);
+        if (!args.timestamps.empty() && std::find_if(
+                args.timestamps.begin(),
+                args.timestamps.end(),
+                [&timestamp] (const std::string &ts) {
+                    return timestamp.find(ts) != std::string::npos;
+                }) == args.timestamps.end()) {
+            continue;
+        }
+
+        csv_file << timestamp
                  << "," << coord_transform(vals[args.lat_property])
                  << "," << coord_transform(vals[args.lon_property])
                  << "," << entry << "\n";
